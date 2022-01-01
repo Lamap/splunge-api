@@ -1,9 +1,27 @@
+require('dotenv').config();
+
 import express = require('express');
 import routes from './routes';
 import { errorHandler } from './middlewares/Errorhandler';
-const app = express();
-
-app.use(routes);
-app.use(errorHandler)
+import mongoose = require('mongoose');
+import bodyParser = require('body-parser');
+import multer = require('multer');
 const PORT: any = process.env.PORT ?? 1111;
-app.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
+
+function run(): void {
+        if (!process.env?.mongouri) {
+                return console.error('no mongo uri provided');
+        }
+        mongoose.connect(process.env.mongouri)
+            .then(() => {
+                    const app = express();
+                    app.use(bodyParser.urlencoded({ extended: true }));
+                    app.use(multer().single('image'));
+                    app.use(routes);
+                    app.use(errorHandler)
+                    app.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
+            })
+            .catch(err => console.log(err));
+}
+run();
+

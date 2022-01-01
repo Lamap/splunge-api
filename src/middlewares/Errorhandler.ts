@@ -3,7 +3,8 @@ import { ISplungeRequest } from '../interfaces';
 
 export function errorHandler(err: any, req: ISplungeRequest, res: Response, next: NextFunction) {
     if (err) {
-        return res.status(500).send(err.message);
+        console.log(err);
+        return res.status(err.status || 500).send(err.message);
     }
     return next(req);
 }
