@@ -6,6 +6,7 @@ import { errorHandler } from './middlewares/Errorhandler';
 import mongoose = require('mongoose');
 import bodyParser = require('body-parser');
 import multer = require('multer');
+
 const PORT: any = process.env.PORT ?? 1111;
 
 function run(): void {
@@ -14,12 +15,12 @@ function run(): void {
         }
         mongoose.connect(process.env.mongouri)
             .then(() => {
-                    const app = express();
-                    app.use(bodyParser.urlencoded({ extended: true }));
-                    app.use(multer().single('image'));
-                    app.use(routes);
-                    app.use(errorHandler)
-                    app.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
+                const app = express();
+                app.use(bodyParser.urlencoded({ extended: true }));
+                app.use(multer().single('image'));
+                app.use(routes);
+                app.use(errorHandler)
+                app.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
             })
             .catch(err => console.log(err));
 }
