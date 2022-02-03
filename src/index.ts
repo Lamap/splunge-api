@@ -16,7 +16,8 @@ function run(): void {
         mongoose.connect(process.env.mongouri)
             .then(() => {
                 const app = express();
-                app.use(bodyParser.urlencoded({ extended: true }));
+                app.use(bodyParser.urlencoded({ extended: true, type: 'application/*+json' }));
+                app.use(bodyParser.json());
                 app.use(multer().single('image'));
                 app.use(routes);
                 app.use(errorHandler)
