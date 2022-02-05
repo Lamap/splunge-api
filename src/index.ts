@@ -16,6 +16,8 @@ function run(): void {
         mongoose.connect(process.env.mongouri)
             .then(() => {
                 const app = express();
+                app.use(express.static(__dirname + '../temp'));
+                app.use(express.static('temp'));
                 app.use(bodyParser.urlencoded({ extended: true, type: 'application/*+json' }));
                 app.use(bodyParser.json());
                 app.use(multer().single('image'));

@@ -43,7 +43,7 @@ export async function fetchImagesByRect(req: IFetchImagesByRectRequest, res: Res
     }).lean();
     res.json(imagesInTheRect);
 }
-export function getImage(req: ISplungeRequest, res: Response<IImage | string>, next: NextFunction): void {
+export function getImage(req: ISplungeRequest, res: Response<IImage | string| Buffer>, next: NextFunction): void {
     const imageId: string | undefined = req.params.id;
     if (!imageId || imageId?.length !== 36) {
         return next({
@@ -56,7 +56,21 @@ export function getImage(req: ISplungeRequest, res: Response<IImage | string>, n
             if (!image) {
                 return next({status: 404, message: `No image with this id ${imageId}`})
             }
-            res.json(image);
+            const imageTemplLocation: string = 'temp/' + image.imagePath.split('/').pop();
+            storageRef.file(image.imagePath).isPublic().then((isP: boolean) => console.log(isP));
+            storageRef.file(image.imagePath).download({
+                destination: imageTemplLocation,
+            }).then((dwn: any) => {
+                // console.log(dwn);
+                // res.send(dwn);
+                console.log(__dirname);
+                // res.sendFile(__dirname + '../../' + imageTemplLocation);
+                res.sendFile(image.imagePath.split('/').pop()!, {root: './temp'});
+                // res.set('Content-Type', 'image/jpg');
+                //res.set("Content-Disposition", "inline;");
+                //res.contentType('image/jpg');
+                //res.send(Buffer.from(dwn));
+            }).catch((err: Error) => console.log(err));
         })
         .catch((err: Error) => next(err));
 }
@@ -76,8 +90,10 @@ export async function createImage(req: ISplungeRequest, res: Response<IImage>, n
             return next({message:`Could not save file: ${err}`, status: 500});
         }
         const publicUrl: string = storageRef.file(imagePath).publicUrl();
+
         const newImage = new ImageModel({
             id: uuid.v1(),
+            imagePath,
             url: publicUrl,
         });
         newImage.save()
