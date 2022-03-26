@@ -65,7 +65,7 @@ export async function getImagesOfPoint(req: Request, res: Response<IImage[]>, ne
         });
     }
     const imagesOfPoint: IImage[] = await ImageModel.find({
-        image: req.params.pointId,
+        pointId: req.params.pointId,
     }).lean();
     res.json(imagesOfPoint);
 }

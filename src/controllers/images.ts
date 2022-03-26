@@ -14,6 +14,7 @@ fbAdmin.initializeApp({
     databaseURL: process.env.databaseURL,
 });
 const storageRef = fbAdmin.storage().bucket(process.env.storagePath);
+const fs = require('fs');
 
 export function fetchAllImages(req: Request, res: Response<IImage[]>, next: NextFunction): Response<IImage[] | void> | void {
     ImageModel.find({})
@@ -43,7 +44,7 @@ export async function fetchImagesByRect(req: IFetchImagesByRectRequest, res: Res
     }).lean();
     res.json(imagesInTheRect);
 }
-export function getImage(req: ISplungeRequest, res: Response<IImage | string| Buffer>, next: NextFunction): void {
+export async function getImage(req: ISplungeRequest, res: Response<IImage>, next: NextFunction): Promise<void> {
     const imageId: string | undefined = req.params.id;
     if (!imageId || imageId?.length !== 36) {
         return next({
@@ -51,28 +52,43 @@ export function getImage(req: ISplungeRequest, res: Response<IImage | string| Bu
             status: 400,
         });
     }
-    ImageModel.findOne({id: imageId})
-        .then((image: IImage | null) => {
-            if (!image) {
-                return next({status: 404, message: `No image with this id ${imageId}`})
-            }
-            const imageTemplLocation: string = 'temp/' + image.imagePath.split('/').pop();
-            storageRef.file(image.imagePath).isPublic().then((isP: boolean) => console.log(isP));
-            storageRef.file(image.imagePath).download({
-                destination: imageTemplLocation,
-            }).then((dwn: any) => {
-                // console.log(dwn);
-                // res.send(dwn);
-                console.log(__dirname);
-                // res.sendFile(__dirname + '../../' + imageTemplLocation);
-                res.sendFile(image.imagePath.split('/').pop()!, {root: './temp'});
-                // res.set('Content-Type', 'image/jpg');
-                //res.set("Content-Disposition", "inline;");
-                //res.contentType('image/jpg');
-                //res.send(Buffer.from(dwn));
-            }).catch((err: Error) => console.log(err));
-        })
-        .catch((err: Error) => next(err));
+    const image: IImage | null = await ImageModel.findOne({id: imageId});
+    if (!image) {
+        return next({
+            message: `No image with this id ${imageId}`,
+            status: 404,
+        });
+    }
+    res.json(image);
+}
+export async function renderImage(req: ISplungeRequest, res: Response<IImage | string| Buffer>, next: NextFunction): Promise<void> {
+    const imageId: string | undefined = req.params.id;
+    if (!imageId || imageId?.length !== 36) {
+        return next({
+            message: 'wrong id, bad request',
+            status: 400,
+        });
+    }
+    const image: IImage | null = await ImageModel.findOne({id: imageId});
+    if (!image) {
+        return next({
+            message: `No image with this id ${imageId}`,
+            status: 404,
+        });
+    }
+
+    const imageTemplLocation: string = `${process.env.templocation}/${image.imagePath.split('/').pop()}`;
+    try {
+        storageRef.file(image.imagePath).download({
+            destination: imageTemplLocation,
+        }).then(() => {
+            res.sendFile(image.imagePath.split('/').pop()!, {root: `./${process.env.templocation}`}, () => {
+                fs.unlinkSync(imageTemplLocation);
+            });
+        });
+    } catch (err: unknown) {
+        next({message: err, status: 500});
+    }
 }
 
 export async function createImage(req: ISplungeRequest, res: Response<IImage>, next: NextFunction): Promise<Response<IImage> | void> {
@@ -111,20 +127,31 @@ export function updateImage(req: Request, res: Response, next: NextFunction): Re
     return res.send('updated');
 }
 
-export function attachPointToImage(req: IAttachPointToImageRequest, res: Response, next: NextFunction): void {
+export async function attachPointToImage(req: IAttachPointToImageRequest, res: Response<IImage>, next: NextFunction): Promise<void> {
     if (!req.params.imageId || !req.params.pointId) {
         return next({
             status: 400,
             message: 'ImageId or pointId is missing',
         });
     }
-    ImageModel.findOneAndUpdate({
+
+    const point: IPoint | null = await PointModel.findOne({id: req.params.pointId});
+    if (!point) {
+        return next({message: `No point with this id ${req.params.pointId}`, status: 400});
+    }
+
+    const updatedImage: IImage | null = await ImageModel.findOneAndUpdate({
         id: req.params.imageId,
     }, {
         $set: {
             pointId: req.params.pointId,
         }
     });
+
+    if (!updatedImage) {
+        return next({message: 'Could not find image to update', status: 404});
+    }
+    res.json(updatedImage);
 }
 
 export function detachPointFromImage(req: Request, res: Response, next: NextFunction): void {
