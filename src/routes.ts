@@ -10,7 +10,7 @@ import {
     updateImage
 } from './controllers/images';
 import {createPoint, getImagesOfPoint, getPointsBySphereRect} from './controllers/points';
-import {createUser} from "./controllers/user";
+import {createUser, listUsers} from "./controllers/user";
 
 var router: Router = express.Router();
 router.get('/images', fetchAllImages);
@@ -25,6 +25,7 @@ router.post('/point', createPoint);
 router.get('/points-by-rect', getPointsBySphereRect);
 router.get('/point/:pointId/images', getImagesOfPoint);
 router.post('/user', createUser);
+router.get('/users', listUsers);
 
 
 router.all('*', (req, res) => {
