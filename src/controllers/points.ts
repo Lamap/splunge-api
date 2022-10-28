@@ -1,7 +1,6 @@
 import { NextFunction, Response, Request } from 'express';
 import { IPoint, PointModel } from '../models/Point';
 import {IGetPointsBySphereRectRequest, ILocationRect, IPointCreateRequest} from '../interfaces';
-import {isLocationContainedByRect} from '../utils/isLocationContainedByRect';
 import ImageModel, {IImage} from '../models/Image';
 const uuid = require('uuid');
 

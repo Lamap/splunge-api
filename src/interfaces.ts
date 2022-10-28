@@ -1,5 +1,6 @@
 import { Request } from 'express';
 import { IWGS84Location } from './models/Point';
+import {IUser} from "./models/User";
 interface ISplungeError {
     readonly message: string;
     readonly status: number;
@@ -37,4 +38,8 @@ export interface ILocationRect {
     readonly minLon: number;
     readonly minLat: number;
     readonly maxLat: number;
+}
+
+export interface ICreateUserRequest {
+    readonly body: IUser;
 }
