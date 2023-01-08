@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { IWGS84Location } from './models/Point';
 import { IUser } from './models/User';
+import { ISpgPoint } from 'splunge-common-lib/src';
 interface ISplungeError {
     readonly message: string;
     readonly status: number;
@@ -9,7 +9,8 @@ export interface ISplungeRequest extends Request {
     readonly error?: ISplungeError;
 }
 export interface IPointCreateRequestBody {
-    readonly location: IWGS84Location;
+    imageId: string;
+    point: Omit<ISpgPoint, 'id' | 'images'>;
 }
 export interface IGetPointsBySphereRectBody {
     locationRect: ILocationRect;

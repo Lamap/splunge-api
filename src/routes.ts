@@ -14,8 +14,8 @@ import { createUser, listUsers, logUserIn } from './controllers/user';
 import { AuthHandler } from './middlewares/AuthHandler';
 
 var router: Router = express.Router();
-router.get('/images', AuthHandler, fetchAllImages);
-router.get('/images-by-rect', fetchImagesByRect);
+router.get('/images', fetchAllImages);
+router.get('/images-by-rect', AuthHandler, fetchImagesByRect);
 router.get('/image/:id', getImage);
 router.get('/image/:id/render', renderImage);
 router.put('/image/:imageId/point/:pointId', attachPointToImage);

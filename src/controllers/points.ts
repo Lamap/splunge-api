@@ -1,10 +1,11 @@
 import { NextFunction, Response, Request } from 'express';
-import { IPoint, PointModel } from '../models/Point';
-import {IGetPointsBySphereRectRequest, ILocationRect, IPointCreateRequest} from '../interfaces';
-import ImageModel, {IImage} from '../models/Image';
+import { PointModel } from '../models/Point';
+import { IGetPointsBySphereRectRequest, ILocationRect, IPointCreateRequest } from '../interfaces';
+import ImageModel, { IImage } from '../models/Image';
+import { ISpgPoint } from 'splunge-common-lib/src';
 const uuid = require('uuid');
 
-export async function queryPointsInRect(locationRect: ILocationRect): Promise<IPoint[]> {
+export async function queryPointsInRect(locationRect: ILocationRect): Promise<ISpgPoint[]> {
     return PointModel.find({
         $and: [
             {
@@ -16,44 +17,51 @@ export async function queryPointsInRect(locationRect: ILocationRect): Promise<IP
                     $gt: locationRect.minLon,
                     $lt: locationRect.maxLon,
                 },
-            }
-        ]
+            },
+        ],
     }).lean();
 }
 
-export async function getPointsBySphereRect(req: IGetPointsBySphereRectRequest, res: Response<IPoint[]>, next: NextFunction): Promise<void> {
-    if (
-        !req.body.locationRect?.maxLat ||
-        !req.body.locationRect?.maxLon ||
-        !req.body.locationRect?.minLat ||
-        !req.body.locationRect?.minLon
-    ) {
+export async function getPointsBySphereRect(req: IGetPointsBySphereRectRequest, res: Response<ISpgPoint[]>, next: NextFunction): Promise<void> {
+    if (!req.body.locationRect?.maxLat || !req.body.locationRect?.maxLon || !req.body.locationRect?.minLat || !req.body.locationRect?.minLon) {
         return next({
             status: 400,
-            message: 'Incorrect location rect'
-        })
+            message: 'Incorrect location rect',
+        });
     }
-    const containedPoints: IPoint[] = await queryPointsInRect(req.body.locationRect);
+    const containedPoints: ISpgPoint[] = await queryPointsInRect(req.body.locationRect);
     res.json(containedPoints);
 }
-export function createPoint(req: IPointCreateRequest, res: Response<IPoint>, next: NextFunction): void {
-    if (!req.body.location?.lat || !req.body.location?.lon) {
+export async function createPoint(req: IPointCreateRequest, res: Response<ISpgPoint[]>, next: NextFunction): Promise<void> {
+    if (!req.body.point.position.lat || !req.body.point.position.lng) {
         return next({
             status: 400,
             message: 'No location given',
         });
     }
-    const newPoint = new PointModel({
-        id: uuid.v1(),
-        location: req.body.location,
-    });
-    newPoint.save()
-        .then((result: IPoint) => {
-            res.status(200).json(newPoint);
-        })
-        .catch((err: Error) => {
-            next(err);
+    if (!req.body.imageId) {
+        return next({
+            status: 400,
+            message: 'You can create a point only by attaching to an image',
         });
+    }
+    const points: ISpgPoint[] = await PointModel.find({}).lean();
+    /// TODO: do it by mongo
+    const adjustedPoints: ISpgPoint[] = points.map((point: ISpgPoint) => {
+        return {
+            ...point,
+            images: point.images.filter((imageId: string) => imageId !== req.body.imageId),
+        };
+    });
+    const newPoint = new PointModel({
+        ...req.body.point,
+        images: [req.body.imageId],
+        id: uuid.v1(),
+    });
+    newPoint.save().catch((err: Error) => {
+        next(err);
+    });
+    res.send([...adjustedPoints, newPoint]);
 }
 
 export async function getImagesOfPoint(req: Request, res: Response<IImage[]>, next: NextFunction): Promise<void> {
@@ -69,11 +77,5 @@ export async function getImagesOfPoint(req: Request, res: Response<IImage[]>, ne
     res.json(imagesOfPoint);
 }
 
-export function updatePoint(req: Request, res: Response, next: NextFunction): void {
-
-}
-export function deletePoint(req: Request, res: Response, next: NextFunction): void {
-
-}
-
-
+export function updatePoint(req: Request, res: Response, next: NextFunction): void {}
+export function deletePoint(req: Request, res: Response, next: NextFunction): void {}
