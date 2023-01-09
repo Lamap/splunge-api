@@ -1,11 +1,11 @@
 import { LatLngLiteral } from 'leaflet';
 import { model, Schema } from 'mongoose';
-import { ISpgPoint } from 'splunge-common-lib/src';
-
+import { ISpgPoint } from 'splunge-common-lib';
 const LatLangSchema = new Schema<LatLngLiteral>({
     lat: { type: Number },
     lng: { type: Number },
 });
+
 const PointSchema = new Schema<ISpgPoint>({
     id: { type: String, required: true },
     images: [{ type: String }],

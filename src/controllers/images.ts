@@ -4,7 +4,7 @@ import { IAttachPointToImageRequest, IFetchImagesByRectRequest, ISplungeRequest 
 import ImageModel, { IImage } from '../models/Image';
 import { PointModel } from '../models/Point';
 import { queryPointsInRect } from './points';
-import { ISpgPoint } from 'splunge-common-lib/src';
+import { ISpgPoint } from 'splunge-common-lib';
 
 const uuid = require('uuid');
 const storageFolder: string = 'TEST';

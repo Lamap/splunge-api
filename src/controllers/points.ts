@@ -2,7 +2,7 @@ import { NextFunction, Response, Request } from 'express';
 import { PointModel } from '../models/Point';
 import { IGetPointsBySphereRectRequest, ILocationRect, IPointCreateRequest } from '../interfaces';
 import ImageModel, { IImage } from '../models/Image';
-import { ISpgPoint } from 'splunge-common-lib/src';
+import { IPointCreateResponse, ISpgPoint } from 'splunge-common-lib';
 const uuid = require('uuid');
 
 export async function queryPointsInRect(locationRect: ILocationRect): Promise<ISpgPoint[]> {
@@ -21,6 +21,11 @@ export async function queryPointsInRect(locationRect: ILocationRect): Promise<IS
         ],
     }).lean();
 }
+export async function getAllPoints(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // get all points
+    const allPoints: ISpgPoint[] = await PointModel.find({}).lean();
+    res.send(allPoints);
+}
 
 export async function getPointsBySphereRect(req: IGetPointsBySphereRectRequest, res: Response<ISpgPoint[]>, next: NextFunction): Promise<void> {
     if (!req.body.locationRect?.maxLat || !req.body.locationRect?.maxLon || !req.body.locationRect?.minLat || !req.body.locationRect?.minLon) {
@@ -32,7 +37,7 @@ export async function getPointsBySphereRect(req: IGetPointsBySphereRectRequest, 
     const containedPoints: ISpgPoint[] = await queryPointsInRect(req.body.locationRect);
     res.json(containedPoints);
 }
-export async function createPoint(req: IPointCreateRequest, res: Response<ISpgPoint[]>, next: NextFunction): Promise<void> {
+export async function createPoint(req: IPointCreateRequest, res: Response<IPointCreateResponse>, next: NextFunction): Promise<void> {
     if (!req.body.point.position.lat || !req.body.point.position.lng) {
         return next({
             status: 400,

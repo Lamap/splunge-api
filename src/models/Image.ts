@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { ISpgImage } from 'splunge-common-lib/src';
+import { ISpgImage } from 'splunge-common-lib';
 export interface IImage extends ISpgImage {
     readonly imagePath: string;
 }
