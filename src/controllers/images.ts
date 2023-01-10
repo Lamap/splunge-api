@@ -4,7 +4,8 @@ import { IAttachPointToImageRequest, IFetchImagesByRectRequest, ISplungeRequest 
 import ImageModel, { IImage } from '../models/Image';
 import { PointModel } from '../models/Point';
 import { queryPointsInRect } from './points';
-import { ISpgPoint } from 'splunge-common-lib';
+import { ApiRoutes, ISpgImage, ISpgPoint } from 'splunge-common-lib';
+import { createImageUrl } from '../utils/createImageUrl';
 
 const uuid = require('uuid');
 const storageFolder: string = 'TEST';
@@ -17,10 +18,18 @@ fbAdmin.initializeApp({
 const storageRef = fbAdmin.storage().bucket(process.env.storagePath);
 const fs = require('fs');
 
-export function fetchAllImages(req: Request, res: Response<IImage[]>, next: NextFunction): Response<IImage[] | void> | void {
-    ImageModel.find({})
-        .then((result: IImage[]) => {
-            return res.json(result);
+export async function fetchAllImages(req: Request, res: Response<ISpgImage[]>, next: NextFunction): Promise<ISpgImage[] | void> {
+    ImageModel.find({}, { imagePath: 0 })
+        .sort({ _id: -1 })
+        .then((result: ISpgImage[]) => {
+            const images: ISpgImage[] = result;
+            const updateImages: ISpgImage[] = images.map((image: ISpgImage) => {
+                return {
+                    ...image,
+                    url: createImageUrl(image.id),
+                };
+            });
+            res.json(updateImages);
         })
         .catch(err => next(err));
 }
@@ -65,6 +74,7 @@ export async function renderImage(req: ISplungeRequest, res: Response<IImage | s
             status: 400,
         });
     }
+
     const image: IImage | null = await ImageModel.findOne({ id: imageId });
     if (!image) {
         return next({
@@ -72,7 +82,7 @@ export async function renderImage(req: ISplungeRequest, res: Response<IImage | s
             status: 404,
         });
     }
-
+    // TODO: adjust with a unique hash
     const imageTemplLocation: string = `${process.env.templocation}/${image.imagePath.split('/').pop()}`;
     try {
         storageRef
@@ -108,11 +118,14 @@ export async function createImage(req: ISplungeRequest, res: Response<IImage>, n
                 return next({ message: `Could not save file: ${err}`, status: 500 });
             }
             const publicUrl: string = storageRef.file(imagePath).publicUrl();
-
+            // TODO: figure out how to serve image directly
+            console.log(publicUrl);
+            const id: string = uuid.v1();
+            const url: string = createImageUrl(id);
             const newImage = new ImageModel({
-                id: uuid.v1(),
+                id,
                 imagePath,
-                url: publicUrl,
+                url,
             });
             newImage
                 .save()
