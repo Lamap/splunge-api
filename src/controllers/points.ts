@@ -150,6 +150,7 @@ export async function detachPointFromImage(
                     images: pointToUpdate.images.filter(id => id !== imageId),
                 },
             },
+            { new: true },
         ).lean();
         if (!pointToUpdate || !updatedPoint) {
             return next({
@@ -172,7 +173,7 @@ export async function attachImageToPoint(req: IAttachPointToImageRequest, res: R
     }
     try {
         const affectedPoints: ISpgPoint[] | null = await PointModel.find({
-            $or: [{ id: req.params.pointId, images: { $in: [req.params.imageId] } }],
+            $or: [{ id: req.params.pointId }, { images: { $in: [req.params.imageId] } }],
         });
         if (affectedPoints.find(point => point.id === req.params.pointId && point.images.includes(req.params.imageId))) {
             return next({ message: 'This image has already assigned to the point', status: 400 });
@@ -192,6 +193,7 @@ export async function attachImageToPoint(req: IAttachPointToImageRequest, res: R
             };
         });
         await PointModel.bulkWrite(updatePointOperations);
+        console.log(affectedPoints.length);
         const updatedPoints: ISpgPoint[] = await PointModel.find({ id: { $in: affectedPoints.map(point => point.id) } });
         res.json(updatedPoints);
     } catch (err) {
