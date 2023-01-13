@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon src/index.ts",
-    "build": "rm -rf build/ && prettier --write src/ tsc",
+    "build": "yarn run lint && rm -rf build/ && prettier --write src/ tsc",
+    "lint": "eslint --ext .ts,.d.ts . --ignore-pattern '@types/* lib/*'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "lamap (lenkei.akos@gmail.com)",
@@ -27,7 +28,7 @@
     "multer": "^1.4.4",
     "nodemon": "^2.0.15",
     "prettier": "^2.7.1",
-    "splunge-common-lib": "1.1.28",
+    "splunge-common-lib": "1.1.37",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2",
     "uuid": "^8.3.2"
@@ -42,6 +43,12 @@
     "@types/leaflet": "1.8.0",
     "@types/mongoose": "^5.11.97",
     "@types/morgan": "^1.9.3",
-    "@types/multer": "^1.4.7"
+    "@types/multer": "^1.4.7",
+    "@types/uuid": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
+    "eslint": "^8.31.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-jsx-a11y": "^6.7.1"
   }
 }

@@ -1,8 +1,24 @@
 import { NextFunction, Response, Request } from 'express';
 import { PointModel } from '../models/Point';
-import { IGetPointsBySphereRectRequest, ILocationRect, IPointCreateRequest } from '../interfaces';
+import {
+    IAttachPointToImageRequest,
+    IDeletePointRequest,
+    IDetachPointFromImageRequest,
+    IGetPointsBySphereRectRequest,
+    ILocationRect,
+    IPointCreateRequest,
+    IPointUpdateRequest,
+} from '../interfaces';
 import ImageModel, { IImage } from '../models/Image';
-import { IPointCreateResponse, ISpgPoint } from 'splunge-common-lib';
+import {
+    IPointAttachResponse,
+    IPointCreateResponse,
+    IPointDeleteResponse,
+    IPointDetachResponse,
+    IPointUpdateResponse,
+    ISpgPoint,
+} from 'splunge-common-lib';
+import { AnyBulkWriteOperation, BulkWriteResult } from 'mongodb';
 const uuid = require('uuid');
 
 export async function queryPointsInRect(locationRect: ILocationRect): Promise<ISpgPoint[]> {
@@ -81,6 +97,104 @@ export async function getImagesOfPoint(req: Request, res: Response<IImage[]>, ne
     }).lean();
     res.json(imagesOfPoint);
 }
+export async function deletePoint(req: IDeletePointRequest, res: Response<IPointDeleteResponse>, next: NextFunction): Promise<void> {
+    if (!req.params.id) {
+        return next({ message: 'Missing point id', status: 400 });
+    }
+    try {
+        const imageToDelete: ISpgPoint = await PointModel.findOne({ id: req.params.id }).lean();
+        if (!!imageToDelete.images.length) {
+            return next({ message: 'This point has some images attached, first to have to delink the images', status: 400 });
+        }
+        await PointModel.findOneAndDelete({ id: req.params.id });
+        res.json({
+            deletedPointId: req.params.id,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+export async function updatePoint(req: IPointUpdateRequest, res: Response<IPointUpdateResponse>, next: NextFunction): Promise<void> {
+    try {
+        if (!req.params.id) {
+            return next({ message: 'Missing point id', status: 400 });
+        }
+        const updatedPoint: ISpgPoint = await PointModel.findOneAndUpdate({ id: req.params.id }, req.body, { new: true }).lean();
+        res.json(updatedPoint);
+    } catch (err) {
+        next(err);
+    }
+}
 
-export function updatePoint(req: Request, res: Response, next: NextFunction): void {}
-export function deletePoint(req: Request, res: Response, next: NextFunction): void {}
+export async function detachPointFromImage(
+    req: IDetachPointFromImageRequest,
+    res: Response<IPointDetachResponse>,
+    next: NextFunction,
+): Promise<void> {
+    if (!req.params.id) {
+        return next({
+            status: 400,
+            message: 'ImageId is missing',
+        });
+    }
+    const imageId: string = req.params.id;
+    const pointToUpdate: ISpgPoint = await PointModel.findOne({ images: { $in: [imageId] } }).lean();
+
+    try {
+        const updatedPoint: ISpgPoint | null = await PointModel.findOneAndUpdate(
+            {
+                images: { $in: [imageId] },
+            },
+            {
+                $set: {
+                    images: pointToUpdate.images.filter(id => id !== imageId),
+                },
+            },
+        ).lean();
+        if (!pointToUpdate || !updatedPoint) {
+            return next({
+                status: 404,
+                message: 'Could not find the image',
+            });
+        }
+        res.json(updatedPoint);
+    } catch (err) {
+        next(err);
+    }
+}
+
+export async function attachImageToPoint(req: IAttachPointToImageRequest, res: Response<IPointAttachResponse>, next: NextFunction): Promise<void> {
+    if (!req.params.imageId || !req.params.pointId) {
+        return next({
+            status: 400,
+            message: 'ImageId or pointId is missing',
+        });
+    }
+    try {
+        const affectedPoints: ISpgPoint[] | null = await PointModel.find({
+            $or: [{ id: req.params.pointId, images: { $in: [req.params.imageId] } }],
+        });
+        if (affectedPoints.find(point => point.id === req.params.pointId && point.images.includes(req.params.imageId))) {
+            return next({ message: 'This image has already assigned to the point', status: 400 });
+        }
+        const updatePointOperations: AnyBulkWriteOperation<ISpgPoint>[] = affectedPoints.map((point: ISpgPoint) => {
+            const images: string[] =
+                point.id === req.params.pointId
+                    ? [...point.images, req.params.imageId]
+                    : point.images.filter(imageId => imageId !== req.params.imageId);
+            return {
+                updateOne: {
+                    filter: { id: point.id },
+                    update: {
+                        images: images,
+                    },
+                },
+            };
+        });
+        await PointModel.bulkWrite(updatePointOperations);
+        const updatedPoints: ISpgPoint[] = await PointModel.find({ id: { $in: affectedPoints.map(point => point.id) } });
+        res.json(updatedPoints);
+    } catch (err) {
+        next(err);
+    }
+}

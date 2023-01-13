@@ -1,26 +1,27 @@
-import axios, { AxiosResponse } from 'axios';
 import { NextFunction, Response, Request } from 'express';
-import { IAttachPointToImageRequest, IFetchImagesByRectRequest, ISplungeRequest } from '../interfaces';
+import { IAttachPointToImageRequest, IDeleteImageRequest, IFetchImagesByRectRequest, IImageUpdateRequest, ISplungeRequest } from '../interfaces';
 import ImageModel, { IImage } from '../models/Image';
 import { PointModel } from '../models/Point';
 import { queryPointsInRect } from './points';
-import { ApiRoutes, ISpgImage, ISpgPoint } from 'splunge-common-lib';
+import { IImageDeleteResponse, IImageUpdateResponse, IPointAttachResponse, ISpgImage, ISpgPoint } from 'splunge-common-lib';
 import { createImageUrl } from '../utils/createImageUrl';
-
-const uuid = require('uuid');
+import { AnyBulkWriteOperation } from 'mongodb';
+import * as fbAdmin from 'firebase-admin';
+import * as uuid from 'uuid';
 const storageFolder: string = 'TEST';
-const fbAdmin = require('firebase-admin');
 const fbServiceAccount = require('../../fireBaseAdminConfig.json');
 fbAdmin.initializeApp({
     credential: fbAdmin.credential.cert(fbServiceAccount),
     databaseURL: process.env.databaseURL,
 });
-const storageRef = fbAdmin.storage().bucket(process.env.storagePath);
+const storage = fbAdmin.storage();
+const storageRef = storage.bucket(process.env.storagePath);
 const fs = require('fs');
 
 export async function fetchAllImages(req: Request, res: Response<ISpgImage[]>, next: NextFunction): Promise<ISpgImage[] | void> {
     ImageModel.find({}, { imagePath: 0 })
         .sort({ _id: -1 })
+        .lean()
         .then((result: ISpgImage[]) => {
             const images: ISpgImage[] = result;
             const updateImages: ISpgImage[] = images.map((image: ISpgImage) => {
@@ -113,7 +114,7 @@ export async function createImage(req: ISplungeRequest, res: Response<IImage>, n
         {
             contentType: req.file?.mimetype,
         },
-        (err: Error) => {
+        (err?: Error | null) => {
             if (err) {
                 return next({ message: `Could not save file: ${err}`, status: 500 });
             }
@@ -139,56 +140,53 @@ export async function createImage(req: ISplungeRequest, res: Response<IImage>, n
     );
 }
 
-export function updateImage(req: Request, res: Response, next: NextFunction): Response<void> {
-    console.log(req.params.id);
-    return res.send('updated');
+export async function updateImage(req: IImageUpdateRequest, res: Response<IImageUpdateResponse>, next: NextFunction): Promise<void> {
+    if (!req.params.id) {
+        return next({ message: 'No image id provided for update', status: 400 });
+    }
+    if (!req.body) {
+        return next({ message: 'No data provided for update', status: 400 });
+    }
+    try {
+        const updatedImage: ISpgImage | null = await ImageModel.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+        if (!updatedImage) {
+            return next({ message: `No image found with this id: ${req.params.id}`, status: 404 });
+        }
+        res.send(updatedImage);
+    } catch (err) {
+        next(err);
+    }
 }
+export async function deleteImage(req: IDeleteImageRequest, res: Response<IImageDeleteResponse>, next: NextFunction): Promise<void> {
+    if (!req.params.id) {
+        console.log(req.params.id);
+        return next({ message: 'No file id has been sent.', status: 400 });
+    }
+    const imageToDelete: string = req.params.id;
 
-export async function attachPointToImage(req: IAttachPointToImageRequest, res: Response<IImage>, next: NextFunction): Promise<void> {
-    if (!req.params.imageId || !req.params.pointId) {
-        return next({
-            status: 400,
-            message: 'ImageId or pointId is missing',
+    try {
+        const pointsToUpdate: ISpgPoint[] = await PointModel.find({ images: { $in: [imageToDelete] } });
+        const updatePointOperations: AnyBulkWriteOperation<ISpgPoint>[] = pointsToUpdate.map((point: ISpgPoint) => {
+            return {
+                updateOne: {
+                    filter: { id: point.id },
+                    update: {
+                        images: point.images.filter(id => id !== imageToDelete),
+                    },
+                },
+            };
         });
-    }
-
-    const point: ISpgPoint | null = await PointModel.findOne({ id: req.params.pointId });
-    if (!point) {
-        return next({ message: `No point with this id ${req.params.pointId}`, status: 400 });
-    }
-
-    const updatedImage: IImage | null = await ImageModel.findOneAndUpdate(
-        {
-            id: req.params.imageId,
-        },
-        {
-            $set: {
-                pointId: req.params.pointId,
-            },
-        },
-    );
-
-    if (!updatedImage) {
-        return next({ message: 'Could not find image to update', status: 404 });
-    }
-    res.json(updatedImage);
-}
-
-export function detachPointFromImage(req: Request, res: Response, next: NextFunction): void {
-    if (!req.params.imageId || !req.params.pointId) {
-        return next({
-            status: 400,
-            message: 'ImageId or pointId is missing',
+        await PointModel.bulkWrite(updatePointOperations);
+        const updatedImageIds: string[] = pointsToUpdate.map(point => point.id);
+        const updatedPoints: ISpgPoint[] = await PointModel.find({ id: { $in: updatedImageIds } });
+        const deletedImage: IImage = await ImageModel.findOneAndDelete({ id: imageToDelete }).lean();
+        const file = storageRef.file(deletedImage.imagePath);
+        await file.delete();
+        res.json({
+            deletedImageId: imageToDelete,
+            updatedPoints,
         });
+    } catch (err) {
+        next(err);
     }
-    ImageModel.findOneAndUpdate(
-        {
-            id: req.params.imageId,
-        },
-        {
-            $set: {
-                pointId: null,
-            },
-        },
-    );
 }

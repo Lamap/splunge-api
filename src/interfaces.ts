@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { IUser } from './models/User';
-import { IPointCreateRequestBody } from 'splunge-common-lib';
+import { IPointCreateRequestBody, ISpgImage, ISpgPoint } from 'splunge-common-lib';
 interface ISplungeError {
     readonly message: string;
     readonly status: number;
@@ -15,13 +15,7 @@ export interface IGetPointsBySphereRectBody {
 export interface IPointCreateRequest extends ISplungeRequest {
     readonly body: IPointCreateRequestBody;
 }
-export interface IAttachPointToImageRequestParams {
-    readonly pointId: string;
-    readonly imageId: string;
-}
-export interface IAttachPointToImageRequest extends Request<IAttachPointToImageRequestParams> {
-    readonly params: IAttachPointToImageRequestParams;
-}
+
 export interface IFetchImagesByRectRequestBody extends Request {
     readonly locationRect: ILocationRect;
 }
@@ -40,4 +34,36 @@ export interface ILocationRect {
 
 export interface ICreateOrReadUserRequest {
     readonly body: IUser;
+}
+interface IParamRequestWithId {
+    readonly id: string;
+}
+export interface IDeleteImageRequest extends Request<IParamRequestWithId> {
+    readonly params: IParamRequestWithId;
+}
+
+export interface IDeletePointRequest extends Request<IParamRequestWithId> {
+    readonly params: IParamRequestWithId;
+}
+
+export interface IImageUpdateRequest extends Request<IParamRequestWithId> {
+    readonly params: IParamRequestWithId;
+    readonly body: ISpgImage;
+}
+
+export interface IPointUpdateRequest extends Request<IParamRequestWithId> {
+    readonly params: IParamRequestWithId;
+    readonly body: ISpgPoint;
+}
+
+export interface IDetachPointFromImageRequest extends Request<IParamRequestWithId> {
+    readonly params: IParamRequestWithId;
+}
+
+interface IParamsWithImageAndPointId {
+    readonly imageId: string;
+    readonly pointId: string;
+}
+export interface IAttachPointToImageRequest extends Request<IParamsWithImageAndPointId> {
+    readonly params: IParamsWithImageAndPointId;
 }
