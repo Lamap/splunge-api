@@ -4461,10 +4461,10 @@ sparse-bitfield@^3.0.3:
   dependencies:
     memory-pager "^1.0.2"
 
-splunge-common-lib@1.1.37:
-  version "1.1.37"
-  resolved "https://registry.yarnpkg.com/splunge-common-lib/-/splunge-common-lib-1.1.37.tgz#b857ce9e832567eee570f4e019b57d47828b0e90"
-  integrity sha512-ywyu6EAM3BLddCGy/WXyZcNuoBir7vciNUfZrPteg8PgS8rupb0VnjDh4KTPD4g9F9n6qgy0qL0ahq7kSZZACg==
+splunge-common-lib@1.1.41:
+  version "1.1.41"
+  resolved "https://registry.yarnpkg.com/splunge-common-lib/-/splunge-common-lib-1.1.41.tgz#e29f2b73669ca51068d16fa1582d2ebef0488a99"
+  integrity sha512-Ha/bgOqee4J5ReNngEG3HKPrPSdpNOusYGcPc3vmpMonBORUxvx+VuxhBiRzIcHjsslux4vtdg74Xn33IPP3Yw==
   dependencies:
     leaflet "1.8.0"
 

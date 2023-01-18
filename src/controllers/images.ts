@@ -1,5 +1,12 @@
 import { NextFunction, Response, Request } from 'express';
-import { IAttachPointToImageRequest, IDeleteImageRequest, IFetchImagesByRectRequest, IImageUpdateRequest, ISplungeRequest } from '../interfaces';
+import {
+    IAttachPointToImageRequest,
+    ICreateImageRequest,
+    IDeleteImageRequest,
+    IFetchImagesByRectRequest,
+    IImageUpdateRequest,
+    ISplungeRequest,
+} from '../interfaces';
 import ImageModel, { IImage } from '../models/Image';
 import { PointModel } from '../models/Point';
 import { queryPointsInRect } from './points';
@@ -101,13 +108,15 @@ export async function renderImage(req: ISplungeRequest, res: Response<IImage | s
     }
 }
 
-export async function createImage(req: ISplungeRequest, res: Response<IImage>, next: NextFunction): Promise<Response<IImage> | void> {
+export async function createImage(req: ICreateImageRequest, res: Response<IImage>, next: NextFunction): Promise<Response<IImage> | void> {
     if (!req.file) {
         return next({
             status: 400,
             message: 'No image attached',
         });
     }
+
+    const widthPerHeightRatio: number = req.body.widthPerHeightRatio;
     const imagePath: string = `${storageFolder}/${req.file.originalname}`;
     storageRef.file(imagePath).save(
         req.file.buffer,
@@ -118,15 +127,15 @@ export async function createImage(req: ISplungeRequest, res: Response<IImage>, n
             if (err) {
                 return next({ message: `Could not save file: ${err}`, status: 500 });
             }
-            const publicUrl: string = storageRef.file(imagePath).publicUrl();
             // TODO: figure out how to serve image directly
-            console.log(publicUrl);
+            // const publicUrl: string = storageRef.file(imagePath).publicUrl();
             const id: string = uuid.v1();
             const url: string = createImageUrl(id);
             const newImage = new ImageModel({
                 id,
                 imagePath,
                 url,
+                widthPerHeightRatio,
             });
             newImage
                 .save()

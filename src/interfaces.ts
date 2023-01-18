@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { IUser } from './models/User';
-import { IPointCreateRequestBody, ISpgImage, ISpgPoint } from 'splunge-common-lib';
+import { ICreateImageRequestBody, IPointCreateRequestBody, ISpgImage, ISpgPoint } from 'splunge-common-lib';
 interface ISplungeError {
     readonly message: string;
     readonly status: number;
@@ -66,4 +66,8 @@ interface IParamsWithImageAndPointId {
 }
 export interface IAttachPointToImageRequest extends Request<IParamsWithImageAndPointId> {
     readonly params: IParamsWithImageAndPointId;
+}
+
+export interface ICreateImageRequest extends Request<ICreateImageRequestBody> {
+    body: ICreateImageRequestBody;
 }

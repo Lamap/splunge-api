@@ -9,6 +9,7 @@ const ImageSchema = new Schema<IImage>({
     imagePath: { type: String, required: true },
     url: { type: String, required: true },
     title: String,
+    widthPerHeightRatio: Number,
 });
 
 const ImageModel = model<IImage>('Image', ImageSchema);
