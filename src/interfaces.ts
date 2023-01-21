@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import { IUser } from './models/User';
-import { ICreateImageRequestBody, IPointCreateRequestBody, ISpgImage, ISpgPoint } from 'splunge-common-lib';
+import { ICreateImageRequestBody, IGetPointsByBoundsRequestBody, IPointCreateRequestBody, ISpgImage, ISpgPoint } from 'splunge-common-lib';
+import { LatLngBounds } from 'leaflet';
 interface ISplungeError {
     readonly message: string;
     readonly status: number;
@@ -9,9 +10,6 @@ export interface ISplungeRequest extends Request {
     readonly error?: ISplungeError;
 }
 
-export interface IGetPointsBySphereRectBody {
-    locationRect: ILocationRect;
-}
 export interface IPointCreateRequest extends ISplungeRequest {
     readonly body: IPointCreateRequestBody;
 }
@@ -22,8 +20,8 @@ export interface IFetchImagesByRectRequestBody extends Request {
 export interface IFetchImagesByRectRequest extends Request {
     readonly body: IFetchImagesByRectRequestBody;
 }
-export interface IGetPointsBySphereRectRequest extends ISplungeRequest {
-    readonly body: IGetPointsBySphereRectBody;
+export interface IGetPointsByLatLngBoundsRequest extends Request {
+    readonly body: IGetPointsByBoundsRequestBody;
 }
 export interface ILocationRect {
     readonly maxLon: number;
@@ -70,4 +68,8 @@ export interface IAttachPointToImageRequest extends Request<IParamsWithImageAndP
 
 export interface ICreateImageRequest extends Request<ICreateImageRequestBody> {
     body: ICreateImageRequestBody;
+}
+
+export interface IPointOfImageRequest extends Request<IParamRequestWithId> {
+    params: IParamRequestWithId;
 }

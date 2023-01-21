@@ -5,12 +5,13 @@ import {
     IDeleteImageRequest,
     IFetchImagesByRectRequest,
     IImageUpdateRequest,
+    IPointOfImageRequest,
     ISplungeRequest,
 } from '../interfaces';
 import ImageModel, { IImage } from '../models/Image';
 import { PointModel } from '../models/Point';
-import { queryPointsInRect } from './points';
-import { IImageDeleteResponse, IImageUpdateResponse, IPointAttachResponse, ISpgImage, ISpgPoint } from 'splunge-common-lib';
+//import { queryPointsInRect } from './points';
+import { IImageDeleteResponse, IImageUpdateResponse, ISpgImage, ISpgPoint, PointOfImageResponse } from 'splunge-common-lib';
 import { createImageUrl } from '../utils/createImageUrl';
 import { AnyBulkWriteOperation } from 'mongodb';
 import * as fbAdmin from 'firebase-admin';
@@ -41,6 +42,7 @@ export async function fetchAllImages(req: Request, res: Response<ISpgImage[]>, n
         })
         .catch(err => next(err));
 }
+/*
 export async function fetchImagesByRect(req: IFetchImagesByRectRequest, res: Response<IImage[]>, next: NextFunction): Promise<void> {
     if (!req.body?.locationRect?.maxLat || !req.body?.locationRect?.maxLon || !req.body?.locationRect?.minLat || !req.body?.locationRect?.minLon) {
         return next({
@@ -57,6 +59,7 @@ export async function fetchImagesByRect(req: IFetchImagesByRectRequest, res: Res
     }).lean();
     res.json(imagesInTheRect);
 }
+ */
 export async function getImage(req: ISplungeRequest, res: Response<IImage>, next: NextFunction): Promise<void> {
     const imageId: string | undefined = req.params.id;
     if (!imageId || imageId?.length !== 36) {
@@ -195,6 +198,19 @@ export async function deleteImage(req: IDeleteImageRequest, res: Response<IImage
             deletedImageId: imageToDelete,
             updatedPoints,
         });
+    } catch (err) {
+        next(err);
+    }
+}
+export async function getPointOfImage(req: IPointOfImageRequest, res: Response<PointOfImageResponse>, next: NextFunction): Promise<void> {
+    if (!req.params.id) {
+        return next({ message: 'No image id.', status: 400 });
+    }
+    try {
+        console.log('yolo', req.params.id);
+        const pointOfImage: ISpgPoint | null = await PointModel.findOne({ images: req.params.id });
+        console.log(`pointOfImage: ${pointOfImage}`);
+        res.json(pointOfImage);
     } catch (err) {
         next(err);
     }

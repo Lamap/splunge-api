@@ -1,5 +1,5 @@
 import express, { Router, Request, Response } from 'express';
-import { createImage, deleteImage, fetchAllImages, fetchImagesByRect, getImage, renderImage, updateImage } from './controllers/images';
+import { createImage, deleteImage, fetchAllImages, getImage, getPointOfImage, renderImage, updateImage } from './controllers/images';
 import {
     attachImageToPoint,
     createPoint,
@@ -7,7 +7,7 @@ import {
     detachPointFromImage,
     getAllPoints,
     getImagesOfPoint,
-    getPointsBySphereRect,
+    getPointsByLatLngBounds,
     updatePoint,
 } from './controllers/points';
 import { createUser, listUsers, logUserIn } from './controllers/user';
@@ -17,8 +17,7 @@ import { ApiRoutes } from 'splunge-common-lib';
 const router: Router = express.Router();
 
 router.get('/images', fetchAllImages);
-router.get('/images-by-rect', AuthHandler, fetchImagesByRect);
-router.get('/image/:id', getImage);
+router.get(ApiRoutes.SPG_IMAGE_FETCH, getImage);
 router.get(ApiRoutes.SPG_IMAGE_RENDER, renderImage);
 router.put(ApiRoutes.SPG_ATTACH_IMAGE_TO_POINT, attachImageToPoint);
 router.delete(ApiRoutes.SPG_DETACH_POINT_FROM_IMAGE, detachPointFromImage);
@@ -29,10 +28,11 @@ router.put(ApiRoutes.SPG_IMAGE_UPDATE_AND_DELETE, updateImage);
 router.put(ApiRoutes.SPG_POINT_UPDATE_AND_DELETE, updatePoint);
 router.post(ApiRoutes.SPG_POINT_CREATE, createPoint);
 router.get(ApiRoutes.SPG_POINTS_FETCH, getAllPoints);
-router.get('/points-by-rect', getPointsBySphereRect);
+router.post(ApiRoutes.SPG_POINTS_BY_BOUNDS, getPointsByLatLngBounds);
+router.get(ApiRoutes.SPG_POINT_OF_IMAGE, getPointOfImage);
 router.get('/point/:pointId/images', getImagesOfPoint);
 router.post('/user', createUser);
-router.get('/users', listUsers);
+router.get('/users', AuthHandler, listUsers);
 router.post('/login', logUserIn);
 
 router.all('*', (req: Request, res: Response) => {

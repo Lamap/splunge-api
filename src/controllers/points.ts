@@ -4,8 +4,7 @@ import {
     IAttachPointToImageRequest,
     IDeletePointRequest,
     IDetachPointFromImageRequest,
-    IGetPointsBySphereRectRequest,
-    ILocationRect,
+    IGetPointsByLatLngBoundsRequest,
     IPointCreateRequest,
     IPointUpdateRequest,
 } from '../interfaces';
@@ -18,40 +17,49 @@ import {
     IPointUpdateResponse,
     ISpgPoint,
 } from 'splunge-common-lib';
-import { AnyBulkWriteOperation, BulkWriteResult } from 'mongodb';
+import { AnyBulkWriteOperation } from 'mongodb';
+import { LatLngBoundsLiteral } from 'leaflet';
+import { ISpgLatLngBounds } from 'splunge-common-lib/lib/interfaces/ISpgLatLngBounds';
 const uuid = require('uuid');
 
-export async function queryPointsInRect(locationRect: ILocationRect): Promise<ISpgPoint[]> {
+export async function queryPointsInRect(bounds: ISpgLatLngBounds): Promise<ISpgPoint[]> {
+    console.log(bounds);
     return PointModel.find({
         $and: [
             {
-                'location.lat': {
-                    $gt: locationRect.minLat,
-                    $lt: locationRect.maxLat,
+                'position.lat': {
+                    $gt: bounds.south,
+                    $lt: bounds.north,
                 },
-                'location.lon': {
-                    $gt: locationRect.minLon,
-                    $lt: locationRect.maxLon,
+                'position.lng': {
+                    $gt: bounds.west,
+                    $lt: bounds.east,
                 },
             },
         ],
     }).lean();
 }
+
 export async function getAllPoints(req: Request, res: Response, next: NextFunction): Promise<void> {
     // get all points
     const allPoints: ISpgPoint[] = await PointModel.find({}).lean();
     res.send(allPoints);
 }
 
-export async function getPointsBySphereRect(req: IGetPointsBySphereRectRequest, res: Response<ISpgPoint[]>, next: NextFunction): Promise<void> {
-    if (!req.body.locationRect?.maxLat || !req.body.locationRect?.maxLon || !req.body.locationRect?.minLat || !req.body.locationRect?.minLon) {
+export async function getPointsByLatLngBounds(req: IGetPointsByLatLngBoundsRequest, res: Response<ISpgPoint[]>, next: NextFunction): Promise<void> {
+    const bounds: ISpgLatLngBounds = req.body;
+    if (!bounds) {
         return next({
             status: 400,
             message: 'Incorrect location rect',
         });
     }
-    const containedPoints: ISpgPoint[] = await queryPointsInRect(req.body.locationRect);
-    res.json(containedPoints);
+    try {
+        const containedPoints: ISpgPoint[] = await queryPointsInRect(bounds);
+        res.json(containedPoints);
+    } catch (err) {
+        next(err);
+    }
 }
 export async function createPoint(req: IPointCreateRequest, res: Response<IPointCreateResponse>, next: NextFunction): Promise<void> {
     if (!req.body.point.position.lat || !req.body.point.position.lng) {
