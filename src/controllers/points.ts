@@ -41,9 +41,13 @@ export async function queryPointsInRect(bounds: ISpgLatLngBounds): Promise<ISpgP
 }
 
 export async function getAllPoints(req: Request, res: Response, next: NextFunction): Promise<void> {
-    // get all points
-    const allPoints: ISpgPoint[] = await PointModel.find({}).lean();
-    res.send(allPoints);
+    try {
+        const findObject = {};
+        const allPoints: ISpgPoint[] = await PointModel.find(findObject).lean();
+        res.send(allPoints);
+    } catch (err) {
+        next(err);
+    }
 }
 
 export async function getPointsByLatLngBounds(req: IGetPointsByLatLngBoundsRequest, res: Response<ISpgPoint[]>, next: NextFunction): Promise<void> {

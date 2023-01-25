@@ -11,12 +11,12 @@ import {
     updatePoint,
 } from './controllers/points';
 import { createUser, listUsers, logUserIn } from './controllers/user';
-import { AuthHandler } from './middlewares/AuthHandler';
+import { verifyAdmin } from './middlewares/VerifyAdmin';
 import { ApiRoutes } from 'splunge-common-lib';
 
 const router: Router = express.Router();
 
-router.get('/images', fetchAllImages);
+router.get(ApiRoutes.SPG_IMAGES_FETCH, fetchAllImages);
 router.get(ApiRoutes.SPG_IMAGE_FETCH, getImage);
 router.get(ApiRoutes.SPG_IMAGE_RENDER, renderImage);
 router.put(ApiRoutes.SPG_ATTACH_IMAGE_TO_POINT, attachImageToPoint);
@@ -31,9 +31,9 @@ router.get(ApiRoutes.SPG_POINTS_FETCH, getAllPoints);
 router.post(ApiRoutes.SPG_POINTS_BY_BOUNDS, getPointsByLatLngBounds);
 router.get(ApiRoutes.SPG_POINT_OF_IMAGE, getPointOfImage);
 router.get('/point/:pointId/images', getImagesOfPoint);
-router.post('/user', createUser);
-router.get('/users', AuthHandler, listUsers);
-router.post('/login', logUserIn);
+router.post(ApiRoutes.SPG_CREATE_USER, createUser);
+router.get('/users', verifyAdmin, listUsers);
+router.post(ApiRoutes.SPG_LOG_USER_IN, logUserIn);
 
 router.all('*', (req: Request, res: Response) => {
     res.status(404).send(`this route does not exist: ${req.url}`);

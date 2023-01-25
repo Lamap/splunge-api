@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt, { Jwt, JwtPayload } from 'jsonwebtoken';
-import { IUser } from '../models/User';
+import { IUser } from 'splunge-common-lib';
 import { getUser } from '../controllers/user';
 
-export async function AuthHandler(req: Request, res: Response, next: NextFunction): Promise<Response<void> | void> {
+export async function verifyAdmin(req: Request, res: Response, next: NextFunction): Promise<Response<void> | void> {
     const { headers } = req;
     try {
         const token = headers.authorization?.replace('Bearer ', '');

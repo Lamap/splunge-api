@@ -1,7 +1,13 @@
 import { Request } from 'express';
-import { IUser } from './models/User';
-import { ICreateImageRequestBody, IGetPointsByBoundsRequestBody, IPointCreateRequestBody, ISpgImage, ISpgPoint } from 'splunge-common-lib';
-import { LatLngBounds } from 'leaflet';
+import {
+    ICreateImageRequestBody,
+    ICreateUserRequestBody,
+    IGetPointsByBoundsRequestBody,
+    ILoginUserRequestBody,
+    IPointCreateRequestBody,
+    ISpgImage,
+    ISpgPoint,
+} from 'splunge-common-lib';
 interface ISplungeError {
     readonly message: string;
     readonly status: number;
@@ -30,8 +36,11 @@ export interface ILocationRect {
     readonly maxLat: number;
 }
 
-export interface ICreateOrReadUserRequest {
-    readonly body: IUser;
+export interface ICreateUserRequest extends Request<ICreateUserRequestBody> {
+    readonly body: ICreateUserRequestBody;
+}
+export interface ILogUserInRequest extends Request<ILoginUserRequestBody> {
+    readonly body: ILoginUserRequestBody;
 }
 interface IParamRequestWithId {
     readonly id: string;

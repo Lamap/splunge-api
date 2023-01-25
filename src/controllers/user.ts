@@ -1,10 +1,11 @@
 import { NextFunction, Response, Request } from 'express';
-import { ICreateOrReadUserRequest } from '../interfaces';
-import { IUser, UserModel } from '../models/User';
+import { ICreateUserRequest, ILogUserInRequest } from '../interfaces';
+import { UserModel } from '../models/User';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { IUser, IUserMetadata, UserRole } from 'splunge-common-lib';
 
-export async function createUser(req: ICreateOrReadUserRequest, res: Response, next: NextFunction): Promise<Response | void> {
+export async function createUser(req: ICreateUserRequest, res: Response, next: NextFunction): Promise<Response | void> {
     const { email, password } = req.body;
     if (!email) {
         return next({ status: 400, message: 'Not valid email' });
@@ -17,7 +18,12 @@ export async function createUser(req: ICreateOrReadUserRequest, res: Response, n
         if (userExistsAlready) {
             return next({ status: 400, message: 'This user email already exists.' });
         }
-        await UserModel.create(req.body);
+        const metaData: IUserMetadata = {
+            lastActed: new Date(),
+            lastLoggedIn: new Date(),
+            createdOn: new Date(),
+        };
+        await UserModel.create({ ...req.body, metaData, role: UserRole.ADMIN });
         return res.send('ok');
     } catch (err) {
         return next({
@@ -43,7 +49,7 @@ export async function getUser(email: string, _id: string): Promise<IUser | null>
     }
 }
 
-export async function logUserIn(req: ICreateOrReadUserRequest, res: Response, next: NextFunction): Promise<void> {
+export async function logUserIn(req: ILogUserInRequest, res: Response, next: NextFunction): Promise<void> {
     const { email, password } = req.body;
     const userFromDb: IUser | null = await UserModel.findOne({ email });
     if (!userFromDb) {
