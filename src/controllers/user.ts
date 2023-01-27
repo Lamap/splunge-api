@@ -18,12 +18,16 @@ export async function createUser(req: ICreateUserRequest, res: Response, next: N
         if (userExistsAlready) {
             return next({ status: 400, message: 'This user email already exists.' });
         }
-        const metaData: IUserMetadata = {
+        const metadata: IUserMetadata = {
             lastActed: new Date(),
             lastLoggedIn: new Date(),
             createdOn: new Date(),
         };
-        await UserModel.create({ ...req.body, metaData, role: UserRole.ADMIN });
+        await UserModel.create({
+            ...req.body,
+            metadata,
+            role: UserRole.ADMIN,
+        });
         return res.send('ok');
     } catch (err) {
         return next({
@@ -51,6 +55,7 @@ export async function getUser(email: string, _id: string): Promise<IUser | null>
 
 export async function logUserIn(req: ILogUserInRequest, res: Response, next: NextFunction): Promise<void> {
     const { email, password } = req.body;
+    console.log('::', req.cookies);
     const userFromDb: IUser | null = await UserModel.findOne({ email });
     if (!userFromDb) {
         return next({ status: 400, message: `No user with this email: ${email}.` });
@@ -58,7 +63,6 @@ export async function logUserIn(req: ILogUserInRequest, res: Response, next: Nex
     if (!bcrypt.compareSync(password, userFromDb.password)) {
         return next({ status: 400, message: 'Wrong password' });
     }
-    console.log(userFromDb);
     if (!process.env.jwtkey) {
         throw Error('jwt secret is not defined');
     }
@@ -66,5 +70,8 @@ export async function logUserIn(req: ILogUserInRequest, res: Response, next: Nex
     const token = jwt.sign({ _id: userFromDb._id, email: userFromDb.email }, jwtSecret, {
         expiresIn: '2 days',
     });
-    res.send(token);
+    res.cookie('jwt-token', token, { maxAge: 900000, httpOnly: true, secure: false });
+    res.set('access-control-expose-headers', 'Set-Cookie');
+
+    res.send('loggedIn');
 }

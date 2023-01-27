@@ -2,7 +2,11 @@ import { CallbackError, model, Document, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { IUser, IUserMetadata } from 'splunge-common-lib';
 
-const UserMetadataSchema: Schema<IUserMetadata> = new Schema({ lastActed: { type: Date, required: true } });
+const UserMetadataSchema: Schema<IUserMetadata> = new Schema({
+    lastActed: { type: Date, required: true },
+    createdOn: { type: Date, required: true },
+    lastLoggedIn: { type: Date },
+});
 
 const UserSchema: Schema<IUser> = new Schema({
     email: { type: String, required: true },

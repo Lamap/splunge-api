@@ -22,7 +22,7 @@ function run(): void {
             app.use(express.static('temp'));
             app.use(bodyParser.urlencoded({ extended: true, type: 'application/*+json' }));
             app.use(bodyParser.json());
-            app.use(cors());
+            app.use(cors({ origin: process.env.clientUrl, credentials: true }));
             app.use(multer().single('image'));
             app.use(routes);
             app.use(errorHandler);
