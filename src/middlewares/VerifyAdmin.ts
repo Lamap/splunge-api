@@ -1,18 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
-import jwt, { Jwt, JwtPayload } from 'jsonwebtoken';
-import { IUser } from 'splunge-common-lib';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { getUser } from '../controllers/user';
+import { IUser } from 'splunge-common-lib';
 
-export async function verifyAdmin(req: Request, res: Response, next: NextFunction): Promise<Response<void> | void> {
-    const { headers } = req;
+export async function verifyAdmin(req: Request<unknown>, res: Response, next: NextFunction): Promise<Response<void> | void> {
     try {
-        const token = headers.authorization?.replace('Bearer ', '');
+        const token = req.cookies['jwt-token'];
         const jwtKey: string | undefined = process.env['jwtkey'];
+
         if (!token || !jwtKey) {
             return res.status(403).send('Failed to authenticate: invalid tokens');
         }
         const decoded: JwtPayload = jwt.verify(token, jwtKey) as JwtPayload;
-        const user: IUser | null = await getUser(decoded.email, decoded._id);
+        const user: IUser | null = await getUser(decoded.user.email);
         if (!user) {
             next({
                 status: 403,
@@ -22,6 +22,7 @@ export async function verifyAdmin(req: Request, res: Response, next: NextFunctio
 
         next();
     } catch (error) {
+        console.log(error);
         next({
             status: 403,
             message: 'Failed to authenticate',

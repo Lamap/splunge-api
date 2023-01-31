@@ -4,6 +4,7 @@ import { UserModel } from '../models/User';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { IUser, IUserMetadata, UserRole } from 'splunge-common-lib';
+import { IUserBase } from 'splunge-common-lib/lib/interfaces/IUserBase';
 
 export async function createUser(req: ICreateUserRequest, res: Response, next: NextFunction): Promise<Response | void> {
     const { email, password } = req.body;
@@ -45,17 +46,16 @@ export async function listUsers(req: Request, res: Response, next: NextFunction)
         return next({ message: 'Could not get users', status: 500 });
     }
 }
-export async function getUser(email: string, _id: string): Promise<IUser | null> {
+export async function getUser(email: string): Promise<IUser | null> {
     try {
-        return await UserModel.findOne({ _id, email });
+        return await UserModel.findOne({ email });
     } catch (error) {
         return null;
     }
 }
 
-export async function logUserIn(req: ILogUserInRequest, res: Response, next: NextFunction): Promise<void> {
+export async function logUserIn(req: ILogUserInRequest, res: Response<IUserBase>, next: NextFunction): Promise<void> {
     const { email, password } = req.body;
-    console.log('::', req.cookies);
     const userFromDb: IUser | null = await UserModel.findOne({ email });
     if (!userFromDb) {
         return next({ status: 400, message: `No user with this email: ${email}.` });
@@ -67,11 +67,20 @@ export async function logUserIn(req: ILogUserInRequest, res: Response, next: Nex
         throw Error('jwt secret is not defined');
     }
     const jwtSecret: string = process.env.jwtkey;
-    const token = jwt.sign({ _id: userFromDb._id, email: userFromDb.email }, jwtSecret, {
+
+    const token = jwt.sign({ user: { email: userFromDb.email, role: userFromDb.role } }, jwtSecret, {
         expiresIn: '2 days',
     });
-    res.cookie('jwt-token', token, { maxAge: 900000, httpOnly: true, secure: false });
-    res.set('access-control-expose-headers', 'Set-Cookie');
+    res.cookie('jwt-token', token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, secure: false });
 
-    res.send('loggedIn');
+    res.send({
+        email: userFromDb.email,
+        metadata: userFromDb.metadata,
+        role: userFromDb.role,
+    });
+}
+export async function logUserOut(req: Request, res: Response<string>, next: NextFunction): Promise<void> {
+    console.log(req.cookies);
+    res.cookie('jwt-token', null);
+    res.send('logged out');
 }

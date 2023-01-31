@@ -7,6 +7,7 @@ import mongoose = require('mongoose');
 import bodyParser = require('body-parser');
 import multer = require('multer');
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 const PORT: any = process.env.PORT ?? 1111;
 
@@ -22,6 +23,7 @@ function run(): void {
             app.use(express.static('temp'));
             app.use(bodyParser.urlencoded({ extended: true, type: 'application/*+json' }));
             app.use(bodyParser.json());
+            app.use(cookieParser());
             app.use(cors({ origin: process.env.clientUrl, credentials: true }));
             app.use(multer().single('image'));
             app.use(routes);
