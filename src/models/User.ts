@@ -1,4 +1,4 @@
-import { CallbackError, model, Document, Schema } from 'mongoose';
+import { CallbackError, model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { IUser, IUserMetadata } from 'splunge-common-lib';
 

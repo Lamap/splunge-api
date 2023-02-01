@@ -18,9 +18,8 @@ import {
     ISpgPoint,
 } from 'splunge-common-lib';
 import { AnyBulkWriteOperation } from 'mongodb';
-import { LatLngBoundsLiteral } from 'leaflet';
 import { ISpgLatLngBounds } from 'splunge-common-lib/lib/interfaces/ISpgLatLngBounds';
-const uuid = require('uuid');
+import uuid from 'uuid';
 
 export async function queryPointsInRect(bounds: ISpgLatLngBounds): Promise<ISpgPoint[]> {
     console.log(bounds);

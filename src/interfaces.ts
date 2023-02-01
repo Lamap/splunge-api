@@ -8,7 +8,7 @@ import {
     ISpgImage,
     ISpgPoint,
 } from 'splunge-common-lib';
-interface ISplungeError {
+export interface ISplungeError {
     readonly message: string;
     readonly status: number;
 }

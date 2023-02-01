@@ -34,6 +34,7 @@ module.exports = {
         // https://typescript-eslint.io/rules/no-unused-vars
         'no-unused-vars': 'off',
 
+        '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/semi': ['error'],
         '@typescript-eslint/no-inferrable-types': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off', // allows us to use the "!" symbols

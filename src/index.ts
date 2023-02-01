@@ -9,7 +9,7 @@ import multer = require('multer');
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
-const PORT: any = process.env.PORT ?? 1111;
+const PORT: number = !!process.env.PORT ? Number(process.env.PORT) : 1111;
 
 function run(): void {
     if (!process.env?.mongouri) {

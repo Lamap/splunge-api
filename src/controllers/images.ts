@@ -1,16 +1,7 @@
 import { NextFunction, Response, Request } from 'express';
-import {
-    IAttachPointToImageRequest,
-    ICreateImageRequest,
-    IDeleteImageRequest,
-    IFetchImagesByRectRequest,
-    IImageUpdateRequest,
-    IPointOfImageRequest,
-    ISplungeRequest,
-} from '../interfaces';
+import { ICreateImageRequest, IDeleteImageRequest, IImageUpdateRequest, IPointOfImageRequest, ISplungeRequest } from '../interfaces';
 import ImageModel, { IImage } from '../models/Image';
 import { PointModel } from '../models/Point';
-//import { queryPointsInRect } from './points';
 import { IImageDeleteResponse, IImageUpdateResponse, ISpgImage, ISpgPoint, PointOfImageResponse } from 'splunge-common-lib';
 import { createImageUrl } from '../utils/createImageUrl';
 import { AnyBulkWriteOperation } from 'mongodb';
@@ -24,7 +15,7 @@ fbAdmin.initializeApp({
 });
 const storage = fbAdmin.storage();
 const storageRef = storage.bucket(process.env.storagePath);
-const fs = require('fs');
+import fs from 'fs';
 
 export async function fetchAllImages(req: Request, res: Response<ISpgImage[]>, next: NextFunction): Promise<ISpgImage[] | void> {
     ImageModel.find({}, { imagePath: 0 })
