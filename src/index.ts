@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-import express = require('express');
+import express from 'express';
 import routes from './routes';
 import { errorHandler } from './middlewares/Errorhandler';
 import mongoose = require('mongoose');
@@ -15,6 +15,7 @@ function run(): void {
     if (!process.env?.mongouri) {
         return console.error('no mongo uri provided');
     }
+
     mongoose
         .connect(process.env.mongouri)
         .then(() => {
