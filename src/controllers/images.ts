@@ -84,6 +84,7 @@ export async function renderImage(req: ISplungeRequest, res: Response<IImage | s
             status: 404,
         });
     }
+
     // TODO: adjust with a unique hash
     const imageTemplLocation: string = `${process.env.templocation}/${image.imagePath.split('/').pop()}`;
     try {
@@ -198,7 +199,6 @@ export async function getPointOfImage(req: IPointOfImageRequest, res: Response<P
         return next({ message: 'No image id.', status: 400 });
     }
     try {
-        console.log('yolo', req.params.id);
         const pointOfImage: ISpgPoint | null = await PointModel.findOne({ images: req.params.id });
         console.log(`pointOfImage: ${pointOfImage}`);
         res.json(pointOfImage);
