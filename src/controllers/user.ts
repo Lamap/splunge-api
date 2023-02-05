@@ -71,7 +71,7 @@ export async function logUserIn(req: ILogUserInRequest, res: Response<IUserBase>
     const token = jwt.sign({ user: { email: userFromDb.email, role: userFromDb.role, sameSite: 'None' } }, jwtSecret, {
         expiresIn: '2 days',
     });
-    res.cookie('jwt-token', token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, secure: false });
+    res.cookie('jwt-token', token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, secure: true, sameSite: 'none' });
 
     res.send({
         email: userFromDb.email,
