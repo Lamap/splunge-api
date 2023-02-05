@@ -19,8 +19,9 @@ import {
 } from 'splunge-common-lib';
 import { AnyBulkWriteOperation } from 'mongodb';
 import { ISpgLatLngBounds } from 'splunge-common-lib/lib/interfaces/ISpgLatLngBounds';
-import uuid from 'uuid';
+import { v1 as uuid } from 'uuid';
 
+// TODO uuid is undefined
 export async function queryPointsInRect(bounds: ISpgLatLngBounds): Promise<ISpgPoint[]> {
     console.log(bounds);
     return PointModel.find({
@@ -88,7 +89,7 @@ export async function createPoint(req: IPointCreateRequest, res: Response<IPoint
     const newPoint = new PointModel({
         ...req.body.point,
         images: [req.body.imageId],
-        id: uuid.v1(),
+        id: uuid(),
     });
     newPoint.save().catch((err: Error) => {
         next(err);

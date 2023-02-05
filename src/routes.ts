@@ -1,5 +1,5 @@
 import express, { Router, Request, Response } from 'express';
-import { createImage, deleteImage, fetchAllImages, getImage, getPointOfImage, renderImage, updateImage } from './controllers/images';
+import { createImage, deleteImage, fetchAllImages, getImage, getPointOfImage, updateImage } from './controllers/images';
 import {
     attachImageToPoint,
     createPoint,
@@ -18,7 +18,6 @@ const router: Router = express.Router();
 
 router.get(ApiRoutes.SPG_IMAGES_FETCH, fetchAllImages);
 router.get(ApiRoutes.SPG_IMAGE_FETCH, getImage);
-router.get(ApiRoutes.SPG_IMAGE_RENDER, renderImage);
 router.put(ApiRoutes.SPG_ATTACH_IMAGE_TO_POINT, verifyAdmin, attachImageToPoint);
 router.delete(ApiRoutes.SPG_DETACH_POINT_FROM_IMAGE, verifyAdmin, detachPointFromImage);
 router.delete(ApiRoutes.SPG_IMAGE_UPDATE_AND_DELETE, verifyAdmin, deleteImage);
