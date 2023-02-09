@@ -3,7 +3,6 @@ import { ICreateImageRequest, IDeleteImageRequest, IImageUpdateRequest, IPointOf
 import ImageModel, { IImage } from '../models/Image';
 import { PointModel } from '../models/Point';
 import { IImageDeleteResponse, IImageUpdateResponse, ISpgImage, ISpgPoint, PointOfImageResponse } from 'splunge-common-lib';
-import { createImageUrl } from '../utils/createImageUrl';
 import { AnyBulkWriteOperation } from 'mongodb';
 import * as fbAdmin from 'firebase-admin';
 import * as uuid from 'uuid';
@@ -16,7 +15,7 @@ fbAdmin.initializeApp({
 const storage = fbAdmin.storage();
 const storageRef = storage.bucket(process.env.storagePath);
 
-export async function fetchAllImages(req: Request, res: Response<ISpgImage[]>, next: NextFunction): Promise<ISpgImage[] | void> {
+export async function fetchAllImages(req: Request, res: Response<ISpgImage[] | null>, next: NextFunction): Promise<ISpgImage[] | void> {
     try {
         const images: ISpgImage[] = await ImageModel.find({}).sort({ _id: -1 }).lean();
         res.json(images);
