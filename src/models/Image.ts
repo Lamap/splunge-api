@@ -1,11 +1,13 @@
 import { Schema, model } from 'mongoose';
 import { ISpgImage } from 'splunge-common-lib';
 import TagSchema from './Tag';
+import DateSchema from './Date';
 export interface IImage extends ISpgImage {
     readonly imagePath: string;
 }
 
 const ImageSchema = new Schema<IImage>({
+    date: { type: DateSchema },
     description: { type: String },
     id: { type: String, required: true },
     imagePath: { type: String, required: true },
