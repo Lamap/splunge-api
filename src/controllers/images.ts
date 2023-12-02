@@ -6,14 +6,15 @@ import { IImageDeleteResponse, IImageUpdateResponse, ISpgImage, ISpgPoint, Point
 import { AnyBulkWriteOperation } from 'mongodb';
 import * as fbAdmin from 'firebase-admin';
 import * as uuid from 'uuid';
+import { buildFirebaseConfig } from '../utils/buildFirebaseConfig';
 const storageFolder: string = 'TEST';
-const fbServiceAccount = require('../../fireBaseAdminConfig.json');
+const fbServiceAccount: Record<string, string | undefined> = buildFirebaseConfig();
 fbAdmin.initializeApp({
     credential: fbAdmin.credential.cert(fbServiceAccount),
-    databaseURL: process.env.databaseURL,
+    databaseURL: process.env.DATABASE_URL,
 });
 const storage = fbAdmin.storage();
-const storageRef = storage.bucket(process.env.storagePath);
+const storageRef = storage.bucket(process.env.STORAGE_PATH);
 
 export async function fetchAllImages(req: Request, res: Response<ISpgImage[] | null>, next: NextFunction): Promise<ISpgImage[] | void> {
     try {

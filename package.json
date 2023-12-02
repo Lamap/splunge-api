@@ -29,7 +29,7 @@
     "multer": "^1.4.4",
     "nodemon": "^2.0.15",
     "prettier": "^2.7.1",
-    "splunge-common-lib": "1.1.59",
+    "splunge-common-lib": "1.1.60",
     "ts-node": "^10.4.0",
     "uuid": "^8.3.2"
   },

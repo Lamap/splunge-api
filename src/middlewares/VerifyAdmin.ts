@@ -6,7 +6,7 @@ import { IUser } from 'splunge-common-lib';
 export async function verifyAdmin(req: Request<unknown>, res: Response, next: NextFunction): Promise<Response<void> | void> {
     try {
         const token = req.cookies['jwt-token'];
-        const jwtKey: string | undefined = process.env['jwtkey'];
+        const jwtKey: string | undefined = process.env['JWT_KEY'];
 
         if (!token || !jwtKey) {
             return res.status(403).send('Failed to authenticate: invalid tokens');
