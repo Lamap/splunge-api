@@ -63,10 +63,10 @@ export async function logUserIn(req: ILogUserInRequest, res: Response<IUserBase>
     if (!bcrypt.compareSync(password, userFromDb.password)) {
         return next({ status: 400, message: 'Wrong password' });
     }
-    if (!process.env.jwtkey) {
+    if (!process.env.JWT_KEY) {
         throw Error('jwt secret is not defined');
     }
-    const jwtSecret: string = process.env.jwtkey;
+    const jwtSecret: string = process.env.JWT_KEY;
 
     const token = jwt.sign({ user: { email: userFromDb.email, role: userFromDb.role, sameSite: 'None' } }, jwtSecret, {
         expiresIn: '2 days',

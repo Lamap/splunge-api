@@ -12,12 +12,12 @@ import cookieParser from 'cookie-parser';
 const PORT: number = !!process.env.PORT ? Number(process.env.PORT) : 1111;
 
 function run(): void {
-    if (!process.env?.mongouri) {
+    if (!process.env?.MONGO_URI) {
         return console.error('no mongo uri provided');
     }
 
     mongoose
-        .connect(process.env.mongouri)
+        .connect(process.env.MONGO_URI)
         .then(() => {
             const app = express();
             app.use(express.static(__dirname + '../temp'));
@@ -25,7 +25,7 @@ function run(): void {
             app.use(bodyParser.urlencoded({ extended: true, type: 'application/*+json' }));
             app.use(bodyParser.json());
             app.use(cookieParser());
-            app.use(cors({ origin: process.env.clientUrl, credentials: true }));
+            app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
             app.use(multer().single('image'));
             app.use(routes);
             app.use(errorHandler);
