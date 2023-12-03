@@ -6,10 +6,10 @@ import { IImageDeleteResponse, IImageUpdateResponse, ISpgImage, ISpgPoint, Point
 import { AnyBulkWriteOperation } from 'mongodb';
 import * as fbAdmin from 'firebase-admin';
 import * as uuid from 'uuid';
-import { buildFirebaseConfig } from '../utils/buildFirebaseConfig';
 const storageFolder: string = 'TEST';
-const fbServiceAccount: Record<string, string | undefined> = buildFirebaseConfig();
-console.log('fbServiceAccount', fbServiceAccount);
+const fbServiceAccount: Record<string, string | undefined> = require('../../fireBaseAdminConfig.json');
+
+console.log('fbServiceAccount::', fbServiceAccount);
 fbAdmin.initializeApp({
     credential: fbAdmin.credential.cert(fbServiceAccount),
     databaseURL: process.env.DATABASE_URL,
