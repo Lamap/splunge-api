@@ -9,13 +9,13 @@ import * as uuid from 'uuid';
 import { buildFirebaseConfig } from '../utils/buildFirebaseConfig';
 const storageFolder: string = 'TEST';
 const fbServiceAccount: Record<string, string | undefined> = buildFirebaseConfig();
+console.log('fbServiceAccount', fbServiceAccount);
 fbAdmin.initializeApp({
     credential: fbAdmin.credential.cert(fbServiceAccount),
     databaseURL: process.env.DATABASE_URL,
 });
 const storage = fbAdmin.storage();
 const storageRef = storage.bucket(process.env.STORAGE_PATH);
-console.log('fbServiceAccount', fbServiceAccount);
 export async function fetchAllImages(req: Request, res: Response<ISpgImage[] | null>, next: NextFunction): Promise<ISpgImage[] | void> {
     try {
         const images: ISpgImage[] = await ImageModel.find({}).sort({ _id: -1 }).lean();
