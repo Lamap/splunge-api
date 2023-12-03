@@ -9,7 +9,6 @@ import * as uuid from 'uuid';
 const storageFolder: string = 'TEST';
 const fbServiceAccount: Record<string, string | undefined> = require('../../fireBaseAdminConfig.json');
 
-console.log('fbServiceAccount::', fbServiceAccount);
 fbAdmin.initializeApp({
     credential: fbAdmin.credential.cert(fbServiceAccount),
     databaseURL: process.env.DATABASE_URL,
