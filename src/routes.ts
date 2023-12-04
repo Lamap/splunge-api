@@ -13,6 +13,7 @@ import {
 import { createUser, listUsers, logUserIn, logUserOut } from './controllers/user';
 import { verifyAdmin } from './middlewares/VerifyAdmin';
 import { ApiRoutes } from 'splunge-common-lib';
+import { checkLiveliness } from './controllers/liveliness';
 
 const router: Router = express.Router();
 
@@ -34,6 +35,7 @@ router.post(ApiRoutes.SPG_CREATE_USER, verifyAdmin, createUser);
 router.get('/users', verifyAdmin, listUsers);
 router.post(ApiRoutes.SPG_LOG_USER_IN, logUserIn);
 router.post(ApiRoutes.SPG_LOG_USER_OUT, logUserOut);
+router.get(ApiRoutes.SPG_HEALTH_CHECK, checkLiveliness);
 
 router.all('*', (req: Request, res: Response) => {
     res.status(404).send(`this route does not exist: ${req.url}`);

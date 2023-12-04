@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-import express from 'express';
+import express, { Express } from 'express';
 import routes from './routes';
 import { errorHandler } from './middlewares/Errorhandler';
 import mongoose = require('mongoose');
@@ -19,7 +19,7 @@ function run(): void {
     mongoose
         .connect(process.env.MONGO_URI)
         .then(() => {
-            const app = express();
+            const app: Express = express();
             app.use(express.static(__dirname + '../temp'));
             app.use(express.static('temp'));
             app.use(bodyParser.urlencoded({ extended: true, type: 'application/*+json' }));
@@ -31,6 +31,6 @@ function run(): void {
             app.use(errorHandler);
             app.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
         })
-        .catch(err => console.log(err));
+        .catch((err: Error) => console.log(err));
 }
 run();

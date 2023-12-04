@@ -159,7 +159,7 @@ export async function detachPointFromImage(
             },
             {
                 $set: {
-                    images: pointToUpdate.images.filter(id => id !== imageId),
+                    images: pointToUpdate.images.filter((id: string): boolean => id !== imageId),
                 },
             },
             { new: true },
@@ -187,14 +187,14 @@ export async function attachImageToPoint(req: IAttachPointToImageRequest, res: R
         const affectedPoints: ISpgPoint[] | null = await PointModel.find({
             $or: [{ id: req.params.pointId }, { images: { $in: [req.params.imageId] } }],
         });
-        if (affectedPoints.find(point => point.id === req.params.pointId && point.images.includes(req.params.imageId))) {
+        if (affectedPoints.find((point: ISpgPoint): boolean => point.id === req.params.pointId && point.images.includes(req.params.imageId))) {
             return next({ message: 'This image has already assigned to the point', status: 400 });
         }
         const updatePointOperations: AnyBulkWriteOperation<ISpgPoint>[] = affectedPoints.map((point: ISpgPoint) => {
             const images: string[] =
                 point.id === req.params.pointId
                     ? [...point.images, req.params.imageId]
-                    : point.images.filter(imageId => imageId !== req.params.imageId);
+                    : point.images.filter((imageId: string): boolean => imageId !== req.params.imageId);
             return {
                 updateOne: {
                     filter: { id: point.id },
@@ -206,7 +206,7 @@ export async function attachImageToPoint(req: IAttachPointToImageRequest, res: R
         });
         await PointModel.bulkWrite(updatePointOperations);
         console.log(affectedPoints.length);
-        const updatedPoints: ISpgPoint[] = await PointModel.find({ id: { $in: affectedPoints.map(point => point.id) } });
+        const updatedPoints: ISpgPoint[] = await PointModel.find({ id: { $in: affectedPoints.map((point: ISpgPoint) => point.id) } });
         res.json(updatedPoints);
     } catch (err) {
         next(err);
