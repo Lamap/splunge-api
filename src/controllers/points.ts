@@ -41,8 +41,12 @@ export async function queryPointsInRect(bounds: ISpgLatLngBounds): Promise<ISpgP
 }
 
 export async function getAllPoints(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const onlyLinked: boolean = req.query.onlyLinked === 'true';
+    console.log(req.query.onlyLinked);
     try {
-        const findObject = {};
+        const findObject = {
+            ...(onlyLinked ? { images: { $gt: 0 } } : {}),
+        };
         const allPoints: ISpgPoint[] = await PointModel.find(findObject).lean();
         res.send(allPoints);
     } catch (err) {
