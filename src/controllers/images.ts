@@ -139,13 +139,13 @@ export async function deleteImage(req: IDeleteImageRequest, res: Response<IImage
                 updateOne: {
                     filter: { id: point.id },
                     update: {
-                        images: point.images.filter(id => id !== imageToDelete),
+                        images: point.images.filter((id: string) => id !== imageToDelete),
                     },
                 },
             };
         });
         await PointModel.bulkWrite(updatePointOperations);
-        const updatedImageIds: string[] = pointsToUpdate.map(point => point.id);
+        const updatedImageIds: string[] = pointsToUpdate.map((point: ISpgPoint): string => point.id);
         const updatedPoints: ISpgPoint[] = await PointModel.find({ id: { $in: updatedImageIds } });
         const deletedImage: IImage = await ImageModel.findOneAndDelete({ id: imageToDelete }).lean();
         const file = storageRef.file(deletedImage.imagePath);
